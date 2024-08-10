@@ -1,263 +1,120 @@
+import svgpathtools as svg
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.interpolate import splprep, splev
-from svgpathtools import parse_path, Path, Line, CubicBezier, svg2paths2
-import svgwrite
-import matplotlib.colors as mcolors
+from scipy.optimize import curve_fit, leastsq
 
-from custom_logger import DSLogger
+def line_to_bezier(start, end):
+    # Convert a line to a simple cubic Bézier
+    control1 = start + (end - start) / 3
+    control2 = start + 2 * (end - start) / 3
+    return svg.CubicBezier(start, control1, control2, end)
 
-
-logger = DSLogger(__name__)
-
-
-# Function to convert a line to a cubic Bézier curve with almost straight control points
-def line_to_bezier(line):
-    return CubicBezier(
-        line.start,
-        line.start + (line.end - line.start) * 0.3,
-        line.start + (line.end - line.start) * 0.7,
-        line.end,
-    )
-
-
-# # Function to fit a cubic Bézier curve to a given set of points
-def fit_cubic_bezier(points):
-    points = np.array(points)
-    if points.ndim == 1:
-        points = points.reshape(-1, 2)
-
-    tck, u = splprep([points[:, 0], points[:, 1]], k=3, s=0)
-    u_new = np.linspace(u.min(), u.max(), len(points))
-    x_new, y_new = splev(u_new, tck)
-    bezier_points = np.column_stack([x_new, y_new])
-    return bezier_points
-
-
-# Function to convert SVG paths to Bézier curves
-def svg_to_beziers(svg_file):
-    paths, attributes, _ = svg2paths2(svg_file)
-    beziers = []
-
-    for path in paths:
-        for segment in path:
-            if isinstance(segment, Line):
-                # Convert line segment to Bézier curve
-                bezier = line_to_bezier(segment)
-            elif isinstance(segment, CubicBezier):
-                bezier = segment
-            else:
-                continue
-
-            beziers.append(bezier)
-
-    return beziers
-
-
-def is_mostly_straight(bezier, threshold=0.01):
-    t_values = np.linspace(0, 1, 10)
-    points = np.array([bezier.point(t) for t in t_values])
+def fit_line(points):
+    def line(x, a, b):
+        return a * x + b
     
-    # Ensure points are 2D
-    if points.ndim == 1:
-        points = points.reshape(-1, 2)
+    x = np.array([p.real for p in points])
+    y = np.array([p.imag for p in points])
     
-    start = points[0]
-    end = points[-1]
+    # Initial guess for line parameters
+    a_guess = (y[-1] - y[0]) / (x[-1] - x[0])
+    b_guess = y[0] - a_guess * x[0]
     
-    # Calculate vector from start to end
-    vector = end - start
+    try:
+        params, _ = curve_fit(line, x, y, p0=[a_guess, b_guess])
+    except Exception as e:
+        print(f"Error fitting line: {e}")
+        return svg.Line(start=complex(x[0], y[0]), end=complex(x[-1], y[-1]))
     
-    # Calculate perpendicular distances
-    distances = np.abs(np.cross(vector, start - points)) / np.linalg.norm(vector)
+    a, b = params
+    return svg.Line(start=complex(x[0], line(x[0], a, b)),
+                    end=complex(x[-1], line(x[-1], a, b)))
+
+def fit_square(points):
+    # Calculate the centroid of the points
+    x = np.array([p.real for p in points])
+    y = np.array([p.imag for p in points])
+    cx, cy = np.mean(x), np.mean(y)
     
-    return np.max(distances) < threshold
-
-
-def has_single_kink(bezier, threshold=0.01):
-    t_values = np.linspace(0, 1, 10)
-    points = np.array([bezier.point(t) for t in t_values])
+    # Calculate the distances from the centroid to all points
+    distances = np.sqrt((x - cx)**2 + (y - cy)**2)
     
-    # Ensure points are 2D
-    if points.ndim == 1:
-        points = points.reshape(-1, 2)
+    # Estimate the square side length as the average distance multiplied by sqrt(2)
+    side_length = 2 * np.mean(distances) / np.sqrt(2)
     
-    start = points[0]
-    end = points[-1]
+    # Define the corners of the square
+    half_side = side_length / 2
+    square_points = [
+        complex(cx - half_side, cy - half_side),
+        complex(cx + half_side, cy - half_side),
+        complex(cx + half_side, cy + half_side),
+        complex(cx - half_side, cy + half_side),
+        complex(cx - half_side, cy - half_side)
+    ]
     
-    # Calculate vector from start to end
-    vector = end - start
-    
-    # Calculate perpendicular distances
-    distances = np.abs(np.cross(vector, start - points)) / np.linalg.norm(vector)
-    
-    return np.sum(distances > threshold) == 1
+    # Create a new path for the square
+    return svg.Path(*[svg.Line(start=square_points[i], end=square_points[i+1]) for i in range(4)])
 
-
-
-def is_almost_right_angle(bezier, angle_threshold=10, straightness_threshold=0.05):
-    # Check if the angle between start-control1-end or start-control2-end is close to 90 degrees
-    angle1 = calculate_angle(bezier.start, bezier.control1, bezier.end)
-    angle2 = calculate_angle(bezier.start, bezier.control2, bezier.end)
-    
-    is_right_angle = (abs(angle1 - 90) < angle_threshold) or (abs(angle2 - 90) < angle_threshold)
-    is_straight = is_mostly_straight(bezier, straightness_threshold)
-    
-    return is_right_angle and is_straight
-
-def calculate_angle(p1, p2, p3):
-    v1 = p1 - p2
-    v2 = p3 - p2
-    dot_product = np.real(np.dot(v1, v2.conjugate()))
-    magnitudes = np.abs(v1) * np.abs(v2)
-    cos_angle = dot_product / magnitudes
-    angle = np.arccos(np.clip(cos_angle, -1.0, 1.0))
-    return np.degrees(angle)
-
-def create_right_angle_curve(bezier):
-    # Determine which control point is closer to forming a right angle
-    angle1 = calculate_angle(bezier.start, bezier.control1, bezier.end)
-    angle2 = calculate_angle(bezier.start, bezier.control2, bezier.end)
-    
-    if abs(angle1 - 90) < abs(angle2 - 90):
-        right_angle_point = bezier.control1
-    else:
-        right_angle_point = bezier.control2
-
-    line1 = Line(bezier.start, right_angle_point)
-    line2 = Line(right_angle_point, bezier.end)
-
-    return [line1, line2]
-
-def is_low_curvature(bezier, threshold=0.004):
-    t_values = [0.25, 0.5, 0.75]
-    curvatures = [abs(bezier.curvature(t)) for t in t_values]
-    return max(curvatures) < threshold
-
-
-def is_right_angle(p1, p2, p3, threshold=5):
-    v1 = p1 - p2
-    v2 = p3 - p2
-    dot_product = np.real(np.dot(v1, v2.conjugate()))
-    magnitudes = np.abs(v1) * np.abs(v2)
-    cos_angle = dot_product / magnitudes
-    angle = np.arccos(np.clip(cos_angle, -1.0, 1.0))
-    return abs(np.degrees(angle) - 90) < threshold
-
-
-def regularize_curve(
-    beziers, angle_threshold=40, curvature_threshold=0.004, straightness_threshold=0.05
-):
-    regularized_beziers = []
-
+def plot_combined_path(beziers, title):
+    plt.figure()
     for bezier in beziers:
-        logger.print_bhagwa(f"Bezier: {bezier} \n\n")
-
-        if isinstance(bezier, Line):
-            logger.print_red(f"Line: ETHE \n\n")
-            regularized_beziers.append(bezier)
-        elif isinstance(bezier, CubicBezier):
-            logger.print_pink(f"Line: ETHE \n\n")
-            is_ra = is_almost_right_angle(bezier, angle_threshold, straightness_threshold)
-            logger.print_bhagwa(f"is_ra: {is_ra} \n\n")
-            if is_ra:
-                right_angle_lines = create_right_angle_curve(bezier)
-                regularized_beziers.extend(right_angle_lines)
-            elif is_low_curvature(bezier, curvature_threshold):
-                regularized_beziers.append(Line(bezier.start, bezier.end))
-            else:
-                subdivided = subdivide_bezier(bezier)
-                regularized_beziers.extend(subdivided)
-
-    return regularized_beziers
-
-
-def subdivide_bezier(bezier, num_subdivisions=2):
-    subdivided = []
-    for i in range(num_subdivisions):
-        t = (i + 1) / (num_subdivisions + 1)
-        left, right = bezier.split(t)
-        subdivided.append(left)
-    subdivided.append(right)
-    return subdivided
-
-
-def plot_beziers(beziers):
-    fig, ax = plt.subplots(figsize=(6, 6))
-    color = 'black'
-    linewidth = 8  # Increased linewidth for thicker strokes
-
-    for bezier in beziers:
-        if isinstance(bezier, list):
-            for line in bezier:
-                points = [line.start, line.end]
-                points = np.array([[p.real, p.imag] for p in points])
-                ax.plot(points[:, 0], points[:, 1], '-', color=color, linewidth=linewidth)
-        elif isinstance(bezier, CubicBezier):
-            points = [bezier.start, bezier.control1, bezier.control2, bezier.end]
-            points = np.array([[p.real, p.imag] for p in points])
-            ax.plot(points[:, 0], points[:, 1], '-', color=color, linewidth=linewidth)
-        else:  # Line
-            points = [bezier.start, bezier.end]
-            points = np.array([[p.real, p.imag] for p in points])
-            ax.plot(points[:, 0], points[:, 1], '-', color=color, linewidth=linewidth)
-
-    ax.set_aspect('equal')
-    ax.axis('off')
-    plt.tight_layout()
+        x = [np.real(bezier.start), np.real(bezier.control1), np.real(bezier.control2), np.real(bezier.end)]
+        y = [np.imag(bezier.start), np.imag(bezier.control1), np.imag(bezier.control2), np.imag(bezier.end)]
+        plt.plot(x, y, 'k-', lw=2)
+    plt.title(title)
+    plt.axis('equal')
     plt.show()
 
+def process_and_regularize_curves(input_svg, output_svg):
+    paths, attributes, svg_attributes = svg.svg2paths2(input_svg)
+    
+    combined_beziers_before = []
+    
+    for path in paths:
+        beziers = []
+        
+        for segment in path:
+            if isinstance(segment, svg.Line):
+                line = fit_line([segment.start, segment.end])
+                bezier = line_to_bezier(line.start, line.end)
+                beziers.append(bezier)
+            elif isinstance(segment, svg.CubicBezier):
+                beziers.append(segment)
+            elif isinstance(segment, svg.QuadraticBezier):
+                beziers.append(segment.to_cubic())
+            elif isinstance(segment, svg.Arc):
+                # Fit circles to arcs or convert arcs to circles
+                circle = fit_circle([p for p in segment.approximate_bezier_path()])
+                beziers.append(circle)
+            else:
+                beziers.append(segment)
+                
+        # Detect and fit squares (replace with your own detection logic if needed)
+        combined_beziers_before.extend(beziers)
+        
+        # Check for square-like shapes
+        for shape in beziers:
+            if isinstance(shape, svg.Path):
+                points = [seg.start for seg in shape if isinstance(seg, svg.Line)]
+                if len(points) == 4:
+                    # Assuming a potential square if there are 4 lines
+                    square = fit_square(points)
+                    combined_beziers_before.append(square)
+    
+    # Visualize the combined paths without regularization (original structure)
+    plot_combined_path(combined_beziers_before, 'Original Path')
 
-def save_beziers_to_svg(beziers, svg_path):
-    dwg = svgwrite.Drawing(svg_path, profile="tiny")
-    colors = list(mcolors.TABLEAU_COLORS.values())
+    # Apply minimal adjustment if needed
+    combined_beziers_after = combined_beziers_before
+    
+    # Visualize the combined paths after minimal adjustment
+    plot_combined_path(combined_beziers_after, 'After Minimal Adjustment')
 
-    for i, bezier in enumerate(beziers):
-        color = colors[i % len(colors)]
-        if isinstance(bezier, list):  # Handle right angle case
-            for line in bezier:
-                dwg.add(
-                    dwg.line(
-                        start=(line.start.real, line.start.imag),
-                        end=(line.end.real, line.end.imag),
-                        stroke=color,
-                        fill="none",
-                        stroke_width=2,
-                    )
-                )
-        elif isinstance(bezier, CubicBezier):
-            path_data = "M {} {} C {} {}, {} {}, {} {}".format(
-                round(bezier.start.real, 3),
-                round(bezier.start.imag, 3),
-                round(bezier.control1.real, 3),
-                round(bezier.control1.imag, 3),
-                round(bezier.control2.real, 3),
-                round(bezier.control2.imag, 3),
-                round(bezier.end.real, 3),
-                round(bezier.end.imag, 3),
-            )
-            dwg.add(dwg.path(d=path_data, stroke=color, fill="none", stroke_width=2))
-        else:  # Line
-            dwg.add(
-                dwg.line(
-                    start=(bezier.start.real, bezier.start.imag),
-                    end=(bezier.end.real, bezier.end.imag),
-                    stroke=color,
-                    fill="none",
-                    stroke_width=2,
-                )
-            )
+    # Save the output SVG file with minimal adjustment
+    regularized_paths = [svg.Path(*combined_beziers_after)]
+    svg.wsvg(regularized_paths, attributes=attributes, svg_attributes=svg_attributes, filename=output_svg)
 
-    dwg.save()
-
-
-if __name__ == "__main__":
-    # Example usage with an input SVG file
-    input_svg = "data/problems/isolated.svg"
-    output_svg = "regularized_output.svg"
-
-    beziers = svg_to_beziers(input_svg)
-    regularized_beziers = regularize_curve(beziers)
-
-    plot_beziers(regularized_beziers)
-    save_beziers_to_svg(regularized_beziers, output_svg)
+# Example usage
+input_svg_file = 'data/problems/frag1.svg'  # Replace with your actual input file
+output_svg_file = 'output_regularized.svg'  # Output file
+process_and_regularize_curves(input_svg_file, output_svg_file)
