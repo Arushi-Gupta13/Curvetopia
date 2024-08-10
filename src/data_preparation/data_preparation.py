@@ -125,15 +125,17 @@ def load_data(data_dir, img_size=64, add_shape_in_folder=True):
     for label, shape in enumerate(shape_classes):
 
         if add_shape_in_folder is True:
-            shape_dir = data_dir + shape
+            shape_dir = os.path.join(data_dir, shape)
         else:
             shape_dir = data_dir
 
+        print(f"Checking directory: {shape_dir}")  # Debug info
+
         if os.path.exists(shape_dir):
-            
             for filename in os.listdir(shape_dir):
                 if filename.endswith('.png'):
                     img_path = os.path.join(shape_dir, filename)
+                    print(f"Found image: {img_path}")  # Debug info
                     img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
                     if img is not None:
                         img = cv2.resize(img, (img_size, img_size))
@@ -146,6 +148,7 @@ def load_data(data_dir, img_size=64, add_shape_in_folder=True):
     data = np.array(data).reshape(-1, img_size, img_size, 1)
     labels = np.array(labels)
     return data, labels
+
 
 
 if __name__ == "__main__":

@@ -1,0 +1,8 @@
+# Ignore Python byte code
+__pycache__/
+*.pyc
+
+venv
+
+# Ignore system-specific settings
+.DS_Store
