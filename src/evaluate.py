@@ -1,8 +1,14 @@
 import os
+import sys
 import numpy as np
 import cv2
+
+# Add the root directory to the system path
+sys.path.append(os.path.dirname(os.path.abspath(__file__ , src)))
+
 from src.model import load_trained_model
 from src.data_preparation.data_preparation import read_csv
+
 
 def regularize_curve(XYs):
     for i in range(len(XYs)):

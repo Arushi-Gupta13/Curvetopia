@@ -2,3 +2,6 @@ numpy
 opencv-python
 matplotlib
 tensorflow
+scipy
+svgpathtools
+shapely
