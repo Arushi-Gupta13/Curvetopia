@@ -12,39 +12,37 @@ def svg_to_segments(svg_path):
     print(f"Total segments extracted: {len(segments)}")
     return segments
 
-def is_straight_line(segment, tolerance=0.01):
-    if isinstance(segment, Line):
-        return True
-    if isinstance(segment, CubicBezier):
-        # Check if control points are close to the line between start and end
-        line_vector = segment.end - segment.start
-        control1_vector = segment.control1 - segment.start
-        control2_vector = segment.control2 - segment.start
-        
-        t1 = np.real(control1_vector * line_vector.conjugate()) / abs(line_vector)**2
-        t2 = np.real(control2_vector * line_vector.conjugate()) / abs(line_vector)**2
-        
-        distance1 = abs(control1_vector - t1 * line_vector)
-        distance2 = abs(control2_vector - t2 * line_vector)
-        
-        return max(distance1, distance2) / abs(line_vector) < tolerance
-    return False
+def is_outer_square(segment, all_segments):
+    start, end = segment.start, segment.end
+    max_distance = max(abs(start.real), abs(start.imag), abs(end.real), abs(end.imag))
+    return max_distance > 0.9 * max(max(abs(s.start.real), abs(s.start.imag), abs(s.end.real), abs(s.end.imag)) for s in all_segments)
 
-def straighten_line(segment):
-    if isinstance(segment, Line):
-        return segment
-    if isinstance(segment, CubicBezier):
-        return Line(segment.start, segment.end)
+def create_perfect_square(segments):
+    points = np.array([(s.start.real, s.start.imag) for s in segments] +
+                      [(s.end.real, s.end.imag) for s in segments])
+    min_x, min_y = np.min(points, axis=0)
+    max_x, max_y = np.max(points, axis=0)
+    side = max(max_x - min_x, max_y - min_y)
+    center_x, center_y = (min_x + max_x) / 2, (min_y + max_y) / 2
+    half_side = side / 2
+    square_points = [
+        complex(center_x - half_side, center_y - half_side),
+        complex(center_x + half_side, center_y - half_side),
+        complex(center_x + half_side, center_y + half_side),
+        complex(center_x - half_side, center_y + half_side)
+    ]
+    return [Line(square_points[i], square_points[(i+1)%4]) for i in range(4)]
 
 def regularize_segments(segments):
-    regularized_segments = []
-    for segment in segments:
-        if is_straight_line(segment):
-            regularized_segments.append(straighten_line(segment))
-        else:
-            regularized_segments.append(segment)
+    outer_segments = [s for s in segments if is_outer_square(s, segments)]
+    inner_segments = [s for s in segments if s not in outer_segments]
     
-    print(f"Regularized segments: {len(regularized_segments)}")
+    print(f"Outer segments: {len(outer_segments)}")
+    print(f"Inner segments: {len(inner_segments)}")
+    
+    regularized_segments = create_perfect_square(outer_segments)
+    regularized_segments.extend(inner_segments)
+    
     return regularized_segments
 
 def plot_segments(segments):
@@ -79,7 +77,7 @@ def save_segments_to_svg(segments, svg_path, size):
     dwg.save()
 
 if __name__ == "__main__":
-    input_svg = "/Users/arushigarg/Downloads/problems 2/frag0.svg"  // add path to your input svg
+    input_svg = "/Users/arushigarg/Downloads/problems 2/frag0.svg" # add your path to the input file
     output_svg = "regularized_output.svg"
     
     try:
