@@ -33,10 +33,12 @@ To install this project on your local IDE.
   pip install -r requirements.txt
   python {data_preparation}.py  // add relative path
   python {train}.py  // add relative path
-  python {evaluate}.py      // add relative path 
 ```
 ### 5. To Regularize Curves
 ```bash 
   python regularize.py     // Add the relative path to image which is to be regularized. 
 ```
-### 6. 
+### 6. To Complete Curves
+```bash 
+  python complete_curves.py     // Add the relative path to image which is to be regularized. 
+```
