@@ -40,12 +40,36 @@ To install this project on your local IDE.
 ```
 ### 6. To Complete Curves
 ```bash 
-  python complete_curves.py     // Add the relative path to image which is to be completed. 
+  python complete_curves.py     // Add the relative path to image which is to be completed.
+```
+### 6. To Obtain Symmetry
+```bash 
+  python symmetry_detection.py     // Add the relative path to image.
 ```
 
 
 ## Approach
+
 ### Data Prediction
+#### Class Prediction
+
+- **Data Preparation**: 
+  - Load new data for prediction from the specified directory.
+  - Ensure the data is correctly loaded; otherwise, raise an error if the data is empty.
+
+- **Data Normalization**:
+  - Normalize the input data by scaling pixel values to the range [0, 1].
+
+- **Model Loading**:
+  - Load the pre-trained model from the provided model file (e.g., `model.h5`).
+
+- **Prediction Process**:
+  - Use the loaded model to predict class probabilities for the new data.
+  - Convert the predicted one-hot encoded vectors into class labels by identifying the index of the highest probability.
+
+- **Output**:
+  - Print the predicted class labels for the input data.
+
 
 ### 1.  Segment Regularization
 
@@ -66,8 +90,6 @@ We tried to match the coordinates of two adjacent points and increased the strok
 <img src="Initial_Itteration_RESULT_COMPARISON.jpg" alt="Completed Curves" width="400"/>
 
 
-
- 
 **Landmarks on input**:
 Here we tried gathering points on the curve where it showed slight distortion, this was to see where the smoothening algorithm should work. 
 
