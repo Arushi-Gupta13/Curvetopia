@@ -63,7 +63,7 @@ The first approach focuses on extracting and regularizing path segments, such as
 We tried to match the coordinates of two adjacent points and increased the stroke width to achieve better results but they were not satisfactory. 
 
 
-<img src="Initial_Itteration_RESULT_COMPARISON.jpg" alt="Completed Curves" width="300"/>
+<img src="Initial_Itteration_RESULT_COMPARISON.jpg" alt="Completed Curves" width="400"/>
 
 
 
