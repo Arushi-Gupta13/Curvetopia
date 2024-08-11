@@ -104,6 +104,47 @@ Here we were able to achieve the perfect square and smoothened curves. The algor
 <img src="final_result_regularize.jpg" alt="Final Output" width="300"/>
 
 
+## Regularization of SVG Paths
+
+### Overview
+This code processes SVG files to extract, regularize, and plot path segments, including lines and cubic Bézier curves. The main goal is to regularize the extracted segments, potentially replacing certain segments with standardized shapes like squares.
+
+### Cubic Bézier Curves
+
+#### Definition
+A cubic Bézier curve is defined by four control points: \( P_0 \), \( P_1 \), \( P_2 \), and \( P_3 \). The curve is parameterized by:
+
+\[ B(t) = (1 - t)^3 \cdot P_0 + 3 \cdot (1 - t)^2 \cdot t \cdot P_1 + 3 \cdot (1 - t) \cdot t^2 \cdot P_2 + t^3 \cdot P_3 \]
+
+where \( t \) ranges from 0 to 1.
+
+#### Key Properties
+- **Control Points**: \( P_1 \) and \( P_2 \) influence the curve's shape but are not on the curve itself.
+- **Curve Segments**: The curve starts at \( P_0 \) and ends at \( P_3 \).
+- **Derivative**: Provides the tangent vector at any point:
+
+  \[ B'(t) = 3 \cdot (1 - t)^2 \cdot (P_1 - P_0) + 6 \cdot (1 - t) \cdot t \cdot (P_2 - P_1) + 3 \cdot t^2 \cdot (P_3 - P_2) \]
+
+- **Length**: Approximated using numerical methods, as a closed-form solution is not available.
+
+#### Regularization Process
+
+##### Segment Extraction
+The `svg_to_segments` function extracts path segments from an SVG file, including lines and cubic Bézier curves.
+
+#### Regularization
+The `regularize_segments` function identifies "outer" segments (such as those forming significant shapes) and replaces them with a regularized shape, such as a perfect square. The process involves:
+- **Identification**: Determining if a segment should be regularized based on its geometric properties.
+- **Replacement**: Substituting identified segments with standardized shapes to ensure uniformity.
+
+#### Plotting and Saving
+- **Plotting**: Uses matplotlib to visualize the segments. Bézier curves are plotted by evaluating the Bézier equation at multiple points.
+- **Saving**: Uses svgwrite to save the regularized segments into an SVG file, ensuring accurate representation of the curves and lines.
+
+### Example Usage
+- **Input**: SVG file with path segments.
+- **Output**: Regularized SVG file with standardized shapes.
+
 
 
 ### 2. Curve Completion
