@@ -63,7 +63,7 @@ The first approach focuses on extracting and regularizing path segments, such as
 We tried to match the coordinates of two adjacent points and increased the stroke width to achieve better results but they were not satisfactory. 
 
 
-![Completed Curves](Initial_Itteration_RESULT_COMPARISON.jpg)
+<img src="Initial_Itteration_RESULT_COMPARISON.jpg" alt="Completed Curves" width="300"/>
 
 
 
@@ -72,14 +72,14 @@ We tried to match the coordinates of two adjacent points and increased the strok
 Here we tried gathering points on the curve where it showed slight distortion, this was to see where the smoothening algorithm should work. 
 
 
-![Iteration](iteration_regularize.jpg)
+<img src="iteration_regularize.jpg" alt="Iteration" width="300"/>
 
 
 **Final Output**: 
 Here we were able to achieve the perfect square and smoothened curves. The algorithm identifies the number of curves and contents and works accordingly. 
 
 
-![Final Output](final_result_regularize.jpg)
+<img src="final_result_regularize.jpg" alt="Final Output" width="300"/>
 
 
 
@@ -100,12 +100,12 @@ The second approach is designed to handle the **completion of curves**, ensuring
 **Separated Curves**
 We first tested to figure out the different curves so as to begin working on them. 
 
-![Separate Curves](separated_curves.png)
+<img src="separated_curves.png" alt="Separate Curves" width="300"/>
 
 
 **Final Output**
 
-![Final Output](completed_curves.png) 
+<img src="completed_curves.png" alt="Final Output" width="300"/>
 
 
 
@@ -129,13 +129,13 @@ This involves processing and manipulating SVG paths to detect and apply symmetry
 1.⁠ ⁠**Vertical Symmetry**:
    - Reflects paths across a vertical line passing through the midpoint of each segment.
 
-![Vertical Symmetry](output_vertical.png)
+<img src="output_vertical.png" alt="Vertical Symmetry" width="300"/>
 
 
 2.⁠ ⁠**Horizontal Symmetry**:
    - Reflects paths across a horizontal line passing through the midpoint of each segment.
 
-![Horizontal Symmetry](output_horizontal.png)
+<img src="output_horizontal.png" alt="Horizontal Symmetry" width="300"/>
 
 
 3.⁠ ⁠**Diagonal Symmetry**:
