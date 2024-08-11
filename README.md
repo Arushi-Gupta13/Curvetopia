@@ -252,6 +252,12 @@ This involves processing and manipulating SVG paths to detect and apply symmetry
 
 
 
+## Authors
+
+- [Jasmine Kaur](https://github.com/jasminekaur02)
+- [Arushi Gupta](https://github.com/Arushi-Gupta13)
+
+
 
 
 
