@@ -42,6 +42,7 @@ To install this project on your local IDE.
 ```bash 
   python complete_curves.py     // Add the relative path to image which is to be completed. 
 ```
+
 ## Approach
 ### Data Prediction
 
@@ -58,7 +59,18 @@ The first approach focuses on extracting and regularizing path segments, such as
 **Example Use Case**: Perfecting the edges of a nearly square shape, ensuring that all sides are equal and all angles are right angles.
 
 Initial Iteration: 
+We tried to match the coordinates of two adjacent points and increased the stroke width to achieve better results but they were not satisfactory. 
 ![Completed Curves](Initial_Itteration_RESULT_COMPARISON.jpg)
+
+ 
+Landmarks on input:
+Here we tried gathering points on the curve where it showed slight distortion, this was to see where the smoothening algorithm should work. 
+![Iteration](iteration_regularize.jpg)
+
+
+Final Output: 
+Here we were able to achieve the perfect square and smoothened curves. The algorithm identifies the number of curves and contents and works accordingly. 
+![Final Output](final_result_regularize.jpg)
 
 
 
