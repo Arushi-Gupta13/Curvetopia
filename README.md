@@ -141,7 +141,7 @@ This involves processing and manipulating SVG paths to detect and apply symmetry
 3.⁠ ⁠**Diagonal Symmetry**:
    - Reflects paths across a 45-degree diagonal line.
 
-![Diagnol Symmetry](output_diagonal.png)
+<img src="output_diagonal.png" alt="Diagonal Symmetry" width="300"/>
 
 
 
