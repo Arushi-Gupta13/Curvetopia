@@ -43,10 +43,11 @@ To install this project on your local IDE.
   python complete_curves.py     // Add the relative path to image which is to be completed. 
 ```
 
+
 ## Approach
 ### Data Prediction
 
-### Approach 1: Segment Regularization
+### 1.  Segment Regularization
 
 The first approach focuses on extracting and regularizing path segments, such as lines and cubic Bézier curves, from an SVG file. Here's how it works:
 
@@ -58,24 +59,32 @@ The first approach focuses on extracting and regularizing path segments, such as
 
 **Example Use Case**: Perfecting the edges of a nearly square shape, ensuring that all sides are equal and all angles are right angles.
 
-Initial Iteration: 
+**Initial Iteration**: 
 We tried to match the coordinates of two adjacent points and increased the stroke width to achieve better results but they were not satisfactory. 
+
+
 ![Completed Curves](Initial_Itteration_RESULT_COMPARISON.jpg)
 
+
+
  
-Landmarks on input:
+**Landmarks on input**:
 Here we tried gathering points on the curve where it showed slight distortion, this was to see where the smoothening algorithm should work. 
+
+
 ![Iteration](iteration_regularize.jpg)
 
 
-Final Output: 
+**Final Output**: 
 Here we were able to achieve the perfect square and smoothened curves. The algorithm identifies the number of curves and contents and works accordingly. 
+
+
 ![Final Output](final_result_regularize.jpg)
 
 
 
 
-### Approach 2: Curve Completion
+### 2. Curve Completion
 
 The second approach is designed to handle the **completion of curves**, ensuring that all open paths are seamlessly closed. This technique uses advanced spatial analysis to achieve this:
 
@@ -86,5 +95,56 @@ The second approach is designed to handle the **completion of curves**, ensuring
 - **Final Adjustments**: The final step involves merging all lines and making sure that any nearly closed curves are perfectly sealed, ensuring the integrity of the shapes.
 
 **Example Use Case**: Automatically closing open curves in a complex design, such as a partially drawn circle, to ensure it forms a perfect loop.
+
+
+**Separated Curves**
+We first tested to figure out the different curves so as to begin working on them. 
+
+![Separate Curves](separated_curves.png)
+
+
+**Final Output**
+
+![Final Output](completed_curves.png) 
+
+
+
+### 3. Symmetry Detection
+
+This involves processing and manipulating SVG paths to detect and apply symmetry operations. The key functionalities include reflecting paths across vertical, horizontal, and diagonal lines and visualizing the results.
+
+1.⁠ **SVG Path Extraction**: 
+   - Reads SVG files and extracts paths as sets of points.
+
+2.⁠ ⁠**Symmetry Detection and Reflection**: 
+   - Supports reflection of paths across vertical, horizontal, and diagonal lines.
+   - Applies mathematical operations to calculate reflected points.
+
+3.⁠ ⁠**Visualization**:
+   - Original and reflected paths are plotted with distinct colors.
+   - The results are saved as images for easy comparison.
+
+##### **Usage**
+
+1.⁠ ⁠**Vertical Symmetry**:
+   - Reflects paths across a vertical line passing through the midpoint of each segment.
+
+![Vertical Symmetry](output_vertical.png)
+
+
+2.⁠ ⁠**Horizontal Symmetry**:
+   - Reflects paths across a horizontal line passing through the midpoint of each segment.
+
+![Horizontal Symmetry](output_horizontal.png)
+
+
+3.⁠ ⁠**Diagonal Symmetry**:
+   - Reflects paths across a 45-degree diagonal line.
+
+![Diagnol Symmetry](output_diagonal.png)
+
+
+
+
 
 
