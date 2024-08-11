@@ -114,7 +114,7 @@ This code processes SVG files to extract, regularize, and plot path segments, in
 #### Definition
 A cubic Bézier curve is defined by four control points: \( P_0 \), \( P_1 \), \( P_2 \), and \( P_3 \). The curve is parameterized by:
 
-\[ B(t) = (1 - t)^3 \cdot P_0 + 3 \cdot (1 - t)^2 \cdot t \cdot P_1 + 3 \cdot (1 - t) \cdot t^2 \cdot P_2 + t^3 \cdot P_3 \]
+B'(t) = 3 * (1 - t)^2 * (P_1 - P_0) + 6 * (1 - t) * t * (P_2 - P_1) + 3 * t^2 * (P_3 - P_2)
 
 where \( t \) ranges from 0 to 1.
 
