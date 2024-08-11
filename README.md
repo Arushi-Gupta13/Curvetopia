@@ -112,18 +112,18 @@ This code processes SVG files to extract, regularize, and plot path segments, in
 ### Cubic Bézier Curves
 
 #### Definition
-A cubic Bézier curve is defined by four control points: \( P_0 \), \( P_1 \), \( P_2 \), and \( P_3 \). The curve is parameterized by:
+A cubic Bézier curve is defined by four control points: ( P_0 ), ( P_1 ), ( P_2 ), and ( P_3 ). The curve is parameterized by:
 
 B'(t) = 3 * (1 - t)^2 * (P_1 - P_0) + 6 * (1 - t) * t * (P_2 - P_1) + 3 * t^2 * (P_3 - P_2)
 
-where \( t \) ranges from 0 to 1.
+where ( t ) ranges from 0 to 1.
 
 #### Key Properties
-- **Control Points**: \( P_1 \) and \( P_2 \) influence the curve's shape but are not on the curve itself.
-- **Curve Segments**: The curve starts at \( P_0 \) and ends at \( P_3 \).
+- **Control Points**: ( P_1 ) and ( P_2 ) influence the curve's shape but are not on the curve itself.
+- **Curve Segments**: The curve starts at ( P_0 ) and ends at ( P_3 ).
 - **Derivative**: Provides the tangent vector at any point:
 
-  \[ B'(t) = 3 \cdot (1 - t)^2 \cdot (P_1 - P_0) + 6 \cdot (1 - t) \cdot t \cdot (P_2 - P_1) + 3 \cdot t^2 \cdot (P_3 - P_2) \]
+B'(t) = 3 * (1 - t)^2 * (P_1 - P_0) + 6 * (1 - t) * t * (P_2 - P_1) + 3 * t^2 * (P_3 - P_2)
 
 - **Length**: Approximated using numerical methods, as a closed-form solution is not available.
 
@@ -181,25 +181,25 @@ This code processes SVG paths, completes curves by connecting endpoints, and vis
 #### Curve Parameterization
 - **Line Segments**: Represented using the parametric equation of a line. For a parametric line segment from point \( A \) to point \( B \):
 
-  \[ L(t) = A + t \cdot (B - A) \]
+ L(t) = A + t * (B - A)
 
-  where \( t \) ranges from 0 to 1.
+  where ( t ) ranges from 0 to 1.
 
 - **Cubic Bézier Curves**: Not directly used in this code, but if included, would be defined by:
 
-  \[ B(t) = (1 - t)^3 \cdot P_0 + 3 \cdot (1 - t)^2 \cdot t \cdot P_1 + 3 \cdot (1 - t) \cdot t^2 \cdot P_2 + t^3 \cdot P_3 \]
+B(t) = (1 - t)^3 * P0 + 3 * (1 - t)^2 * t * P1 + 3 * (1 - t) * t^2 * P2 + t^3 * P3
 
-  where \( t \) ranges from 0 to 1.
+  where ( t ) ranges from 0 to 1.
 
 #### Distance Calculations
 - **KD-Tree**: Efficient nearest-neighbor search is performed using the KD-Tree data structure. Given a point \( p \) and its nearest neighbors \( p_i \), the distance \( d \) is calculated using:
 
-  \[ d = \sqrt{(p_x - p_{i_x})^2 + (p_y - p_{i_y})^2} \]
+d = sqrt((px - pix)^2 + (py - piy)^2)
 
 #### Curve Completion
 - **Connecting Endpoints**: Line segments are created between endpoints if they are within a specified maximum distance \( d \):
 
-  \[ d \leq \text{max\_distance} \]
+d <= max_distance
 
   New connections are added only if they do not cross existing lines.
 
