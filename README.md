@@ -171,7 +171,51 @@ We first tested to figure out the different curves so as to begin working on the
 <img src="completed_curves.png" alt="Final Output" width="300"/>
 
 
+## Curve Completion and Visualization
 
+### Overview
+This code processes SVG paths, completes curves by connecting endpoints, and visualizes the results. It uses the `svgpathtools` library to handle SVG paths, `shapely` for geometric operations, and `scipy` for spatial queries.
+
+### Mathematical Concepts
+
+#### Curve Parameterization
+- **Line Segments**: Represented using the parametric equation of a line. For a parametric line segment from point \( A \) to point \( B \):
+
+  \[ L(t) = A + t \cdot (B - A) \]
+
+  where \( t \) ranges from 0 to 1.
+
+- **Cubic Bézier Curves**: Not directly used in this code, but if included, would be defined by:
+
+  \[ B(t) = (1 - t)^3 \cdot P_0 + 3 \cdot (1 - t)^2 \cdot t \cdot P_1 + 3 \cdot (1 - t) \cdot t^2 \cdot P_2 + t^3 \cdot P_3 \]
+
+  where \( t \) ranges from 0 to 1.
+
+#### Distance Calculations
+- **KD-Tree**: Efficient nearest-neighbor search is performed using the KD-Tree data structure. Given a point \( p \) and its nearest neighbors \( p_i \), the distance \( d \) is calculated using:
+
+  \[ d = \sqrt{(p_x - p_{i_x})^2 + (p_y - p_{i_y})^2} \]
+
+#### Curve Completion
+- **Connecting Endpoints**: Line segments are created between endpoints if they are within a specified maximum distance \( d \):
+
+  \[ d \leq \text{max\_distance} \]
+
+  New connections are added only if they do not cross existing lines.
+
+- **Merging Lines**: The `linemerge` function merges all line segments into continuous lines, ensuring no duplicate or intersecting lines.
+
+- **Closing Curves**: Nearly closed curves are completed by adding a segment from the end point back to the start point if the distance between them is within the `max_distance`.
+
+### Visualization
+- **Plotting**: Uses `matplotlib` to plot original and completed curves. Original curves are shown in blue, and completed curves in red.
+
+### Example Usage
+- **Input**: SVG file with path segments.
+- **Output**: Completed curves saved as an image and displayed for verification.
+
+
+  
 ### 3. Symmetry Detection
 
 This involves processing and manipulating SVG paths to detect and apply symmetry operations. The key functionalities include reflecting paths across vertical, horizontal, and diagonal lines and visualizing the results.
