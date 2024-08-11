@@ -77,7 +77,7 @@ def save_segments_to_svg(segments, svg_path, size):
     dwg.save()
 
 if __name__ == "__main__":
-    input_svg = "data/problems/isolated.svg" # add your path to the input file
+    input_svg = "data/problems/frag0.svg" # add your path to the input file
     output_svg = "regularized_output.svg"
     
     try:
